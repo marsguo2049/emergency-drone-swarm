@@ -55,4 +55,4 @@ Production check:
 npm run build
 ```
 
-GitHub Pages publishing will be added after the first interaction and model review.
+The interactive site is published through GitHub Pages Actions at https://marsguo2049.github.io/emergency-drone-swarm/.
