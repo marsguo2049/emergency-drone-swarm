@@ -25,6 +25,14 @@ Emergency Drone focuses on decisions rather than hardware control:
 
 The drones provide early intelligence, communications and limited assistance. They do not replace authorized traffic control, firefighting, rescue or medical teams.
 
+## Current deployment parameters
+
+- Bridge length: 2–30 km
+- Drone flight radius: 3–16 km
+- Remote-control radius: 3–16 km
+- Automatic intermediate unmanned-vessel stations for uncovered long spans
+- Dynamic civilian traffic, drone flight routes, initial aerial fire suppression, and ground fire-engine access
+
 ## Optimization direction
 
 ```text

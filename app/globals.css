@@ -52,3 +52,39 @@ footer{min-height:94px;padding:25px 4vw;background:var(--ink);color:var(--white)
 @media(max-width:1000px){.hero{grid-template-columns:1fr .72fr;gap:4vw}.mission-layout{grid-template-columns:1fr 290px}.system-intro{grid-template-columns:1fr 2fr}.system-intro>p:last-child{grid-column:2}.decision-grid{grid-template-columns:repeat(2,1fr)}.model-grid{grid-template-columns:1fr 1fr}.objective-card{grid-column:1/-1;grid-row:auto}.boundary-card{grid-column:1/-1}}
 @media(max-width:760px){.site-header{height:64px;grid-template-columns:1fr auto;padding:0 18px}.site-header nav{display:none}.brand{font-size:10px}.hero{min-height:auto;padding:80px 18px 45px;display:block}.hero h1{font-size:clamp(48px,15vw,74px)}.hero-intro{font-size:15px}.scenario-card{margin:70px 0 40px}.scenario-visual{min-height:230px}.hero-index{position:static;margin-top:25px}.mission-section,.model-section{padding:76px 18px}.mission-heading{align-items:flex-start;flex-direction:column;gap:24px}.mission-meta{width:100%;justify-content:space-between}.mission-layout{display:block}.simulation-panel{border-right:0;border-bottom:1px solid var(--ink)}.bridge-scene{min-height:430px}.control-panel{min-height:570px}.land{width:7%}.mobile-base{transform:scale(.82)}.base-left{left:2%}.base-right{right:2%}.drone-tag{display:none}.system-section{padding:80px 18px}.system-intro{display:block}.system-intro h2{margin:25px 0}.decision-grid{grid-template-columns:1fr}.decision-grid article{min-height:245px}.model-heading{display:block}.model-heading h2{margin-top:24px}.model-grid{display:block}.model-grid article{min-height:210px}.roadmap-section{padding:0 18px 70px}.roadmap-list>div{grid-template-columns:42px 1fr auto}.roadmap-list strong{font-size:25px}footer{grid-template-columns:1fr auto;padding:22px 18px}footer p{display:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+
+
+/* Mission parameters and route visualization */
+.parameter-strip{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr)) minmax(240px,1.25fr);border:1px solid var(--ink);border-bottom:0;background:var(--paper)}
+.parameter-control{padding:15px 16px;border-right:1px solid var(--ink);display:flex;flex-direction:column;gap:12px}
+.parameter-control>span{display:flex;justify-content:space-between;gap:12px;font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.parameter-control b{font:700 11px/1 ui-monospace,monospace;color:var(--ink)}
+.parameter-control input{width:100%;height:3px;accent-color:var(--signal);cursor:pointer}
+.deployment-result{padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;background:var(--acid);gap:10px}
+.deployment-result>span{display:flex;justify-content:space-between;font-size:8px;text-transform:uppercase;letter-spacing:.12em}
+.deployment-result small{font-size:7px;color:var(--muted)}
+.deployment-result strong{font-size:13px;line-height:1.25}
+.deployment-result.needs-vessel{background:var(--signal);color:white}.deployment-result.needs-vessel small{color:rgba(255,255,255,.72)}
+
+.mission-routes{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none}
+.route-line{fill:none;stroke-width:3;opacity:0;stroke-dasharray:10 9;transition:opacity .35s ease}
+.route-line.route-active{opacity:.92;animation:routeFlow 1.2s linear infinite}
+.ground-route{stroke:var(--signal)}.drone-route,.relay-route{stroke:var(--acid)}.relay-route{stroke-width:2;opacity:.55}
+.route-legend{position:absolute;left:15px;bottom:14px;z-index:18;background:rgba(242,241,235,.9);border:1px solid var(--ink);padding:7px 9px;display:flex;gap:14px;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.route-legend span{display:flex;align-items:center;gap:5px}.route-legend i{width:15px;height:2px;display:inline-block}.legend-ground{background:var(--signal)}.legend-drone{background:var(--acid);border-top:1px solid var(--ink)}
+.vehicle.cruising-left{animation:cruiseLeft 4.8s linear infinite}.vehicle.cruising-right{animation:cruiseRight 4.8s linear infinite}
+.fire-engine{position:absolute;top:12px;width:40px;height:19px;background:var(--signal);border:1px solid white;z-index:10;opacity:0;transition:left .24s linear,opacity .3s ease}
+.fire-engine.engine-visible{opacity:1}.fire-engine span{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);background:var(--signal);color:white;padding:4px 6px;font-size:7px;white-space:nowrap}
+.fire-engine::before{content:"";position:absolute;width:11px;height:12px;right:-8px;bottom:0;background:white;border:1px solid var(--signal)}
+.fire-engine i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--ink);bottom:-4px}.fire-engine i:first-of-type{left:5px}.fire-engine i:last-of-type{right:3px}
+.support-vessel{position:absolute;bottom:5%;width:50px;height:16px;z-index:9;transform:translateX(-50%);background:var(--ink);color:white;border-bottom:4px solid var(--signal);font-size:6px;display:grid;place-items:center}
+.support-vessel::before{content:"";position:absolute;width:8px;height:25px;bottom:12px;left:20px;background:var(--ink)}.support-vessel i{position:absolute;width:58px;height:12px;border:1px solid rgba(215,255,66,.65);border-radius:50%;bottom:-12px}
+.fire-drone .drone-icon b{background:#58c7df}.suppression-stream{position:absolute;z-index:13;width:2px;height:62px;left:51%;top:42%;background:linear-gradient(#58c7df,transparent);transform:rotate(12deg);transform-origin:top;opacity:0}.suppression-stream.stream-active{opacity:.82;animation:spray .75s ease-in-out infinite alternate}
+.incident-car.suppressed{box-shadow:0 0 0 5px rgba(88,199,223,.16);border-color:#58c7df}.incident-car.suppressed .flame{opacity:.12;transform:scale(.35)}.incident-car.suppressed .smoke{opacity:.08}
+.metric-grid .fire-contained{background:#bcebdc}.metric-grid .fire-contained strong{font:700 11px/1.2 Arial,sans-serif;text-transform:uppercase}
+.long-span .land{width:7%}.extra-long-span .land{width:5%}
+
+@keyframes cruiseLeft{0%{transform:translateX(25px)}100%{transform:translateX(-55px)}}@keyframes cruiseRight{0%{transform:translateX(-25px)}100%{transform:translateX(55px)}}@keyframes routeFlow{to{stroke-dashoffset:-38}}@keyframes spray{to{height:50px;opacity:.42}}
+
+@media(max-width:1000px){.parameter-strip{grid-template-columns:repeat(3,1fr)}.deployment-result{grid-column:1/-1}.parameter-control:nth-child(3){border-right:0}}
+@media(max-width:760px){.parameter-strip{grid-template-columns:1fr 1fr}.parameter-control{border-bottom:1px solid var(--ink)}.parameter-control:nth-child(2){border-right:0}.parameter-control:nth-child(3){grid-column:1/-1;border-right:0}.deployment-result{grid-column:1/-1}.route-legend{flex-direction:column;gap:5px}.support-vessel{transform:translateX(-50%) scale(.78)}}

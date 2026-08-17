@@ -18,6 +18,21 @@ const COPY = {
     scenarioName: "Bridge vehicle fire",
     scenarioMeta: "2 lanes · 1 shoulder · single island link",
     lab: "Interactive operations research lab",
+    bridgeLength: "Bridge length",
+    flightRadius: "Flight radius",
+    controlRadius: "Control radius",
+    deployment: "Coverage plan",
+    endpointMode: "Two-end deployment",
+    vesselMode: "Intermediate vessel stations",
+    vesselUnit: "vessel",
+    vesselUnits: "vessels",
+    rangeNote: "Effective radius",
+    groundRoute: "Ground fire route",
+    droneRoute: "Drone flight route",
+    normalTraffic: "Traffic moving · incident detected",
+    fireStatus: "Fire suppression",
+    contained: "Contained",
+    activeFire: "Active",
     active: "Active incident",
     missionClock: "Mission clock",
     weather: "Crosswind 18 km/h",
@@ -52,6 +67,9 @@ const COPY = {
     relayTask: "Network link",
     traffic: "Traffic",
     trafficTask: "Exit guidance",
+    fireDrone: "Fire support",
+    fireTask: "Initial suppression",
+    fireEngine: "Fire engine",
     timeline: "Response sequence",
     stepLabels: ["Detect", "Inspect", "Coordinate", "Clear"],
     systemEyebrow: "One response loop, four decisions",
@@ -59,7 +77,7 @@ const COPY = {
     systemIntro:
       "The system does not replace firefighters or police. It reduces the blind period before they can safely reach an isolated incident.",
     cards: [
-      ["01", "Pre-position", "Place mobile drone bases along vulnerable corridors before an incident occurs."],
+      ["01", "Pre-position", "Place mobile bases and vessel relays according to bridge length, flight radius and control range."],
       ["02", "Dispatch", "Select the closest capable base and the minimum useful mix of drone roles."],
       ["03", "Coordinate", "Assign observation, relay and traffic-control tasks without airspace conflicts."],
       ["04", "Re-optimize", "Update the plan when wind, fire, congestion, energy or communication changes."],
@@ -99,6 +117,21 @@ const COPY = {
     scenarioName: "跨海大桥车辆起火",
     scenarioMeta: "双向两车道 · 一条应急车道 · 岛屿唯一陆路连接",
     lab: "交互式运筹优化实验室",
+    bridgeLength: "桥梁长度",
+    flightRadius: "飞行半径",
+    controlRadius: "遥控距离",
+    deployment: "覆盖方案",
+    endpointMode: "两端基地覆盖",
+    vesselMode: "中间无人船站点",
+    vesselUnit: "艘无人船",
+    vesselUnits: "艘无人船",
+    rangeNote: "有效半径",
+    groundRoute: "地面消防路线",
+    droneRoute: "无人机飞行路线",
+    normalTraffic: "车流行驶中 · 已发现事故",
+    fireStatus: "火势压制",
+    contained: "已控制",
+    activeFire: "燃烧中",
     active: "事故处理中",
     missionClock: "任务计时",
     weather: "侧风 18 km/h",
@@ -133,6 +166,9 @@ const COPY = {
     relayTask: "通信链路",
     traffic: "交通",
     trafficTask: "撤离引导",
+    fireDrone: "消防支援",
+    fireTask: "初期火势压制",
+    fireEngine: "消防车",
     timeline: "响应序列",
     stepLabels: ["发现", "侦察", "协同", "疏散"],
     systemEyebrow: "一次响应，四类决策",
@@ -140,7 +176,7 @@ const COPY = {
     systemIntro:
       "系统并不替代消防和交警，而是缩短救援人员安全抵达隔离事故现场之前的信息盲区。",
     cards: [
-      ["01", "事前布设", "事故发生前，在脆弱交通走廊附近配置移动无人机基地。"],
+      ["01", "事前布设", "根据桥长、飞行半径和遥控距离配置陆上基地及水上中继站。"],
       ["02", "快速派遣", "选择最近且能力匹配的基地，并确定最小有效无人机组合。"],
       ["03", "现场协同", "分配侦察、中继和交通任务，同时避免空域冲突。"],
       ["04", "滚动优化", "根据风、火势、拥堵、电量和通信变化持续更新方案。"],
@@ -198,30 +234,51 @@ export default function Home() {
   const [language, setLanguage] = useState<Language>("zh");
   const [missionState, setMissionState] = useState<MissionState>("idle");
   const [elapsed, setElapsed] = useState(0);
+  const [bridgeLength, setBridgeLength] = useState(8);
+  const [flightRadius, setFlightRadius] = useState(8);
+  const [controlRadius, setControlRadius] = useState(6);
   const t = COPY[language];
+
+  const effectiveRadius = Math.min(flightRadius, controlRadius);
+  const vesselCount = Math.max(0, Math.min(3, Math.ceil(bridgeLength / (2 * effectiveRadius)) - 1));
+  const missionDistance = bridgeLength / (2 * (vesselCount + 1));
+  const firstEyesTarget = Math.round(25 + (missionDistance / 90) * 3600);
+  const routeReadyTarget = firstEyesTarget + Math.round(90 + bridgeLength * 7 + vesselCount * 25);
+  const missionDuration = routeReadyTarget + 45;
 
   useEffect(() => {
     if (missionState !== "running") return;
+    const simulationStep = Math.max(3, Math.ceil(missionDuration / 72));
     const interval = window.setInterval(() => {
       setElapsed((current) => {
-        if (current >= 180) { setMissionState("complete"); return 180; }
-        return Math.min(180, current + 3);
+        if (current >= missionDuration) { setMissionState("complete"); return missionDuration; }
+        return Math.min(missionDuration, current + simulationStep);
       });
     }, 240);
     return () => window.clearInterval(interval);
-  }, [missionState]);
+  }, [missionState, missionDuration]);
 
-  const phase = elapsed === 0 ? 0 : elapsed < 24 ? 1 : elapsed < 48 ? 2 : elapsed < 78 ? 3 : elapsed < 150 ? 4 : 5;
-  const progress = Math.min(1, Math.max(0, (elapsed - 66) / 88));
+  const ratio = elapsed / missionDuration;
+  const phase = elapsed === 0 ? 0 : ratio < .18 ? 1 : ratio < .34 ? 2 : ratio < .53 ? 3 : ratio < .82 ? 4 : 5;
+  const progress = Math.min(1, Math.max(0, (ratio - .42) / .40));
   const cleared = Math.min(8, Math.floor(progress * 9));
+  const fireSuppressed = ratio >= .72;
+  const truckProgress = Math.min(1, Math.max(0, (ratio - .75) / .23));
+  const launchX = vesselCount > 0 ? 50 : 8;
   const dronePositions = useMemo(() => ({
-    scout: { left: `${elapsed < 45 ? 8 + (elapsed / 45) * 43 : 51}%`, top: `${elapsed < 45 ? 72 - (elapsed / 45) * 43 : 29}%` },
-    relay: { left: `${elapsed < 70 ? 91 - Math.max(0, (elapsed - 40) / 30) * 36 : 55}%`, top: `${elapsed < 70 ? 74 - Math.max(0, (elapsed - 40) / 30) * 60 : 14}%` },
-    traffic: { left: `${elapsed < 78 ? 91 - Math.max(0, (elapsed - 48) / 30) * 21 : 70}%`, top: `${elapsed < 78 ? 74 - Math.max(0, (elapsed - 48) / 30) * 30 : 44}%` },
-  }), [elapsed]);
+    scout: { left: `${ratio < .30 ? launchX + (ratio / .30) * (51 - launchX) : 51}%`, top: `${ratio < .30 ? 76 - (ratio / .30) * 47 : 29}%` },
+    relay: { left: `${ratio < .50 ? 91 - Math.max(0, (ratio - .18) / .32) * 36 : 55}%`, top: `${ratio < .50 ? 74 - Math.max(0, (ratio - .18) / .32) * 60 : 14}%` },
+    traffic: { left: `${ratio < .56 ? 91 - Math.max(0, (ratio - .24) / .32) * 21 : 70}%`, top: `${ratio < .56 ? 74 - Math.max(0, (ratio - .24) / .32) * 30 : 44}%` },
+    fire: { left: `${ratio < .62 ? launchX + Math.max(0, (ratio - .30) / .32) * (51 - launchX) : 51}%`, top: `${ratio < .62 ? 78 - Math.max(0, (ratio - .30) / .32) * 36 : 42}%` },
+  }), [ratio, launchX, vesselCount]);
 
   function startMission() { if (missionState === "complete") setElapsed(0); setMissionState("running"); }
   function resetMission() { setMissionState("idle"); setElapsed(0); }
+  function updateParameter(setter: (value: number) => void, value: number) {
+    setter(value);
+    setMissionState("idle");
+    setElapsed(0);
+  }
 
   return (
     <main>
@@ -253,25 +310,55 @@ export default function Home() {
           <div className="mission-meta"><div><span>{t.missionClock}</span><strong>{formatTime(elapsed)}</strong></div><div className="weather"><i />{t.weather}</div></div>
         </div>
 
+        <div className="parameter-strip">
+          <label className="parameter-control">
+            <span>{t.bridgeLength}<b>{bridgeLength} km</b></span>
+            <input aria-label={t.bridgeLength} type="range" min="2" max="30" step="2" value={bridgeLength} onChange={(event) => updateParameter(setBridgeLength, Number(event.target.value))} />
+          </label>
+          <label className="parameter-control">
+            <span>{t.flightRadius}<b>{flightRadius} km</b></span>
+            <input aria-label={t.flightRadius} type="range" min="3" max="16" step="1" value={flightRadius} onChange={(event) => updateParameter(setFlightRadius, Number(event.target.value))} />
+          </label>
+          <label className="parameter-control">
+            <span>{t.controlRadius}<b>{controlRadius} km</b></span>
+            <input aria-label={t.controlRadius} type="range" min="3" max="16" step="1" value={controlRadius} onChange={(event) => updateParameter(setControlRadius, Number(event.target.value))} />
+          </label>
+          <div className={`deployment-result ${vesselCount > 0 ? "needs-vessel" : ""}`}>
+            <span>{t.deployment}<small>{t.rangeNote}: {effectiveRadius} km</small></span>
+            <strong>{vesselCount === 0 ? t.endpointMode : `${t.vesselMode} · ${vesselCount} ${vesselCount === 1 ? t.vesselUnit : t.vesselUnits}`}</strong>
+          </div>
+        </div>
+
         <div className="mission-layout">
           <div className="simulation-panel">
-            <div className="scene-status"><span><i />{missionState === "idle" ? t.safe : t.live}</span><b>{t.safe}</b></div>
-            <div className="bridge-scene">
+            <div className="scene-status"><span><i />{missionState === "idle" ? t.normalTraffic : t.live}</span><b>{bridgeLength} km · {t.safe}</b></div>
+            <div className={`bridge-scene ${bridgeLength > 14 ? "long-span" : ""} ${bridgeLength > 24 ? "extra-long-span" : ""}`}>
               <div className="water-lines" /><div className="land land-left"><span>{t.mainland}</span></div><div className="land land-right"><span>{t.island}</span></div><div className="bridge-shadow" />
+              <svg className="mission-routes" viewBox="0 0 1000 510" preserveAspectRatio="none" aria-hidden="true">
+                <path className={`route-line ground-route ${phase >= 4 ? "route-active" : ""}`} d="M 60 245 L 495 245" />
+                <path className={`route-line drone-route ${phase >= 1 ? "route-active" : ""}`} d={vesselCount > 0 ? "M 500 460 Q 500 335 510 230" : "M 65 430 Q 285 105 510 230"} />
+                <path className={`route-line relay-route ${phase >= 3 ? "route-active" : ""}`} d="M 930 430 Q 760 60 555 90" />
+              </svg>
+              <div className="route-legend"><span><i className="legend-ground" />{t.groundRoute}</span><span><i className="legend-drone" />{t.droneRoute}</span></div>
               <div className="bridge-deck">
                 <div className="lane-divider" /><div className="shoulder-line" /><span className="direction dir-left">‹ ‹ ‹</span><span className="direction dir-right">› › ›</span>
                 {vehicles.map((vehicle, index) => {
                   const offset = vehicle.side === "left" ? -progress * (vehicle.start + 8) : progress * (102 - vehicle.start);
-                  return <span key={vehicle.id} className={`vehicle lane-${vehicle.lane} ${index < cleared ? "vehicle-cleared" : ""}`} style={{ left: `calc(${vehicle.start}% + ${offset}%)` }} />;
+                  const cruise = missionState === "idle" ? `cruising-${vehicle.side}` : "";
+                  return <span key={vehicle.id} className={`vehicle lane-${vehicle.lane} ${cruise} ${index < cleared ? "vehicle-cleared" : ""}`} style={{ left: `calc(${vehicle.start}% + ${offset}%)`, animationDelay: `-${vehicle.id * .62}s` }} />;
                 })}
-                <div className="incident-car"><span className="flame flame-a" /><span className="flame flame-b" /><span className="smoke smoke-a" /><span className="smoke smoke-b" /><small>{t.incident}</small></div>
+                <div className={`incident-car ${fireSuppressed ? "suppressed" : ""}`}><span className="flame flame-a" /><span className="flame flame-b" /><span className="smoke smoke-a" /><span className="smoke smoke-b" /><small>{t.incident}</small></div>
+                <div className={`fire-engine ${phase >= 4 ? "engine-visible" : ""}`} style={{ left: `${7 + truckProgress * 42}%` }}><span>{t.fireEngine}</span><i /><i /></div>
               </div>
               <div className="mobile-base base-left"><span>MB—01</span><i /><i /></div><div className="mobile-base base-right"><span>MB—02</span><i /><i /></div>
+              {Array.from({ length: vesselCount }, (_, index) => <div className="support-vessel" key={index} style={{ left: `${9 + ((index + 1) / (vesselCount + 1)) * 82}%` }}><span>USV—0{index + 1}</span><i /></div>)}
               <Drone className="scout-drone" label={t.scout} task={t.scoutTask} active={phase >= 1} style={dronePositions.scout} />
               <Drone className="relay-drone" label={t.relay} task={t.relayTask} active={phase >= 3} style={dronePositions.relay} />
               <Drone className="traffic-drone" label={t.traffic} task={t.trafficTask} active={phase >= 3} style={dronePositions.traffic} />
+              <Drone className="fire-drone" label={t.fireDrone} task={t.fireTask} active={phase >= 3} style={dronePositions.fire} />
+              <span className={`suppression-stream ${phase >= 3 && !fireSuppressed ? "stream-active" : ""}`} />
             </div>
-            <div className="sequence"><div className="sequence-title"><span>{t.timeline}</span><b>{Math.round((elapsed / 180) * 100)}%</b></div><div className="sequence-track"><i style={{ width: `${(elapsed / 180) * 100}%` }} /></div><div className="sequence-labels">{t.stepLabels.map((label, index) => <span key={label} className={phase >= index + 1 ? "done" : ""}>{label}</span>)}</div></div>
+            <div className="sequence"><div className="sequence-title"><span>{t.timeline}</span><b>{Math.round((elapsed / missionDuration) * 100)}%</b></div><div className="sequence-track"><i style={{ width: `${(elapsed / missionDuration) * 100}%` }} /></div><div className="sequence-labels">{t.stepLabels.map((label, index) => <span key={label} className={phase >= index + 1 ? "done" : ""}>{label}</span>)}</div></div>
           </div>
 
           <aside className="control-panel">
@@ -281,10 +368,10 @@ export default function Home() {
               {missionState === "running" ? <button className="main-control" onClick={() => setMissionState("paused")}>{t.pause}<span>Ⅱ</span></button> : <button className="main-control" onClick={startMission}>{missionState === "paused" ? t.resume : t.start}<span>▶</span></button>}
               <button className="reset-control" onClick={resetMission} aria-label={t.reset}>↺</button>
             </div>
-            <div className="metric-grid"><div><span>{t.firstEyes}</span><strong>{elapsed >= 45 ? "00:45" : "—"}</strong></div><div><span>{t.routeReady}</span><strong>{elapsed >= 150 ? "02:30" : "—"}</strong></div><div className="metric-wide"><span>{t.cleared}</span><strong>{cleared}<small>/ 8</small></strong></div></div>
+            <div className="metric-grid"><div><span>{t.firstEyes}</span><strong>{elapsed >= firstEyesTarget ? formatTime(firstEyesTarget) : "—"}</strong></div><div><span>{t.routeReady}</span><strong>{elapsed >= routeReadyTarget ? formatTime(routeReadyTarget) : "—"}</strong></div><div><span>{t.cleared}</span><strong>{cleared}<small>/ 8</small></strong></div><div className={fireSuppressed ? "fire-contained" : ""}><span>{t.fireStatus}</span><strong>{fireSuppressed ? t.contained : t.activeFire}</strong></div></div>
             <div className="asset-list">
-              <div className="list-title"><span>{t.assets}</span><b>3</b></div>
-              {[["SC—01", t.scout, t.scoutTask, phase >= 1], ["RL—02", t.relay, t.relayTask, phase >= 3], ["TC—03", t.traffic, t.trafficTask, phase >= 3]].map(([id, name, task, isActive]) => (
+              <div className="list-title"><span>{t.assets}</span><b>4</b></div>
+              {[["SC—01", t.scout, t.scoutTask, phase >= 1], ["RL—02", t.relay, t.relayTask, phase >= 3], ["TC—03", t.traffic, t.trafficTask, phase >= 3], ["FS—04", t.fireDrone, t.fireTask, phase >= 3]].map(([id, name, task, isActive]) => (
                 <div className="asset-row" key={String(id)}><i className={isActive ? "asset-active" : ""} /><b>{id}</b><span>{name}</span><small>{isActive ? t.live : t.queued} · {task}</small></div>
               ))}
             </div>
