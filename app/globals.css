@@ -69,7 +69,7 @@ footer{min-height:94px;padding:25px 4vw;background:var(--ink);color:var(--white)
 .mission-routes{position:absolute;inset:0;width:100%;height:100%;z-index:6;pointer-events:none}
 .route-line{fill:none;stroke-width:3;opacity:0;stroke-dasharray:10 9;transition:opacity .35s ease}
 .route-line.route-active{opacity:.92;animation:routeFlow 1.2s linear infinite}
-.ground-route{stroke:var(--signal)}.drone-route,.relay-route{stroke:var(--acid)}.relay-route{stroke-width:2;opacity:.55}
+.ground-route{stroke:var(--signal)}.drone-route,.relay-route{stroke:var(--acid)}.relay-route{stroke-width:2}.relay-route.route-active{opacity:.55}
 .route-legend{position:absolute;left:15px;bottom:14px;z-index:18;background:rgba(242,241,235,.9);border:1px solid var(--ink);padding:7px 9px;display:flex;gap:14px;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
 .route-legend span{display:flex;align-items:center;gap:5px}.route-legend i{width:15px;height:2px;display:inline-block}.legend-ground{background:var(--signal)}.legend-drone{background:var(--acid);border-top:1px solid var(--ink)}
 .vehicle.cruising-left{animation:cruiseLeft 4.8s linear infinite}.vehicle.cruising-right{animation:cruiseRight 4.8s linear infinite}
