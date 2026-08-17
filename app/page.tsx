@@ -240,7 +240,7 @@ export default function Home() {
   const t = COPY[language];
 
   const effectiveRadius = Math.min(flightRadius, controlRadius);
-  const vesselCount = Math.max(0, Math.min(3, Math.ceil(bridgeLength / (2 * effectiveRadius)) - 1));
+  const vesselCount = Math.max(0, Math.min(4, Math.ceil(bridgeLength / (2 * effectiveRadius)) - 1));
   const missionDistance = bridgeLength / (2 * (vesselCount + 1));
   const firstEyesTarget = Math.round(25 + (missionDistance / 90) * 3600);
   const routeReadyTarget = firstEyesTarget + Math.round(90 + bridgeLength * 7 + vesselCount * 25);
